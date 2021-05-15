@@ -1,0 +1,47 @@
+{% extends "includes/base.html" %}
+{% block title %}Новая Запись{% endblock %}
+{% block content %}
+  {% load user_filters %}
+  <div class="row justify-content-center">
+    <div class="col-md-8 p-5">
+      <div class="card">
+        {% if not is_edit %}
+          <div class="card-header">Новая запись</div>
+        {% else %}
+          <div class="card-header">Редактировать запись</div>
+        {% endif %}
+        <div class="card-body">
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="form-group row" aria-required={% if field.field.required %}"true"{% else %}"false"{% endif %}>
+                <label for="{{ field.id_for_label }}" class="col-md-4 col-form-label text-md-right">
+                  {{ field.label }}
+                  {% if field.field.required %}
+                    <span class="required">*</span>
+                  {% endif %}
+                </label>
+                <div class="col-md-6">
+                  {{ field|addclass:"form-control" }}
+                </div>                
+              </div>
+            {% endfor %}
+            {% if not is_edit %}
+              <div class="col-md-6 offset-md-4">              
+                <button type="submit" class="btn btn-primary">
+                  Добавить
+                </button>
+              </div>
+            {% else %}
+              <div class="col-md-6 offset-md-4">              
+                <button type="submit" class="btn btn-primary">
+                  Сохранить
+                </button>
+              </div>
+            {% endif %}
+          </form>
+        </div> <!-- card body -->
+      </div> <!-- card -->
+    </div> <!-- col -->
+  </div> <!-- row -->
+{% endblock %}

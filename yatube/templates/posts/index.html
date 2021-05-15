@@ -1,0 +1,13 @@
+{% extends "includes/base.html" %}
+{% block title %}Последние обновления на сайте{% endblock %}
+{% block header %}Последние обновления на сайте{% endblock %}
+{% block content %}
+  {% load cache %}
+  {% cache 20 index_page %}
+    {% include "includes/menu.html" with index=True %}
+    {% for post in page %}
+      {% include "includes/post_card.html" with post=post %}
+    {% endfor %}
+    {% include "includes/paginator.html" %}
+  {% endcache %} 
+{% endblock %}
