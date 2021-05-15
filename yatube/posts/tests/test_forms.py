@@ -241,7 +241,7 @@ class CommentFormTests(TestCase):
         self.assertRedirects(
             response,
             '/auth/login/?next=' + reverse_pages_names[0]
-    )
+        )
         self.assertEqual(Comment.objects.count(), comment_count)
         self.assertFalse(
             Comment.objects.filter(text='Второй комментарий').exists()

@@ -10,7 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Comment, Follow, Group, Post
+from posts.models import Comment, Group, Post
 from yatube.settings import POSTS_PER_PAGE
 
 User = get_user_model()
