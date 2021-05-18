@@ -17,6 +17,7 @@ User = get_user_model()
 
 
 class PostViewsTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -151,6 +152,7 @@ class PostViewsTests(TestCase):
 
 
 class PaginatorViewsTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -201,6 +203,7 @@ class PaginatorViewsTest(TestCase):
 
 
 class PostViewsGifTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -273,6 +276,7 @@ class PostViewsGifTests(TestCase):
 
 
 class PostViewsCommentsTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -293,9 +297,6 @@ class PostViewsCommentsTests(TestCase):
             text='Первый комментарий'
         )
 
-    def setUp(self):
-        self.guest_client = Client()
-
     def test_post_pages_shows_comments(self):
         """Шаблон post сформирован с комментариями."""
         reverse_name = reverse(
@@ -305,7 +306,7 @@ class PostViewsCommentsTests(TestCase):
                 'post_id': PostViewsCommentsTests.post.id
             }
         )
-        response = self.guest_client.get(reverse_name)
+        response = self.client.get(reverse_name)
         first_object = response.context['post']
         post_comments_0 = first_object.comments
         self.assertEqual(

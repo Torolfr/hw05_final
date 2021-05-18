@@ -13,6 +13,7 @@ User = get_user_model()
 
 
 class PostFormTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -90,6 +91,7 @@ class PostFormTests(TestCase):
 
 
 class PostFormWithGifTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -136,16 +138,13 @@ class PostFormWithGifTests(TestCase):
             'group': PostFormWithGifTests.group.id,
             'image': uploaded,
         }
-        reverse_names = (
-            reverse('new_post'),
-            reverse('index'),
-        )
+        names = ('new_post', 'index')
         response = self.authorized_client.post(
-            reverse_names[0],
+            reverse(names[0]),
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, reverse_names[1])
+        self.assertRedirects(response, reverse(names[1]))
         self.assertEqual(Post.objects.count(), posts_count + 1)
         self.assertTrue(
             Post.objects.filter(
@@ -157,6 +156,7 @@ class PostFormWithGifTests(TestCase):
 
 
 class CommentFormTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -178,7 +178,6 @@ class CommentFormTests(TestCase):
         )
 
     def setUp(self):
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(CommentFormTests.user)
 
@@ -233,7 +232,7 @@ class CommentFormTests(TestCase):
                 }
             )
         )
-        response = self.guest_client.post(
+        response = self.client.post(
             reverse_pages_names[0],
             data=form_data,
             follow=True

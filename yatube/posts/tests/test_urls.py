@@ -8,6 +8,7 @@ User = get_user_model()
 
 
 class PostsURLTests(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -44,7 +45,6 @@ class PostsURLTests(TestCase):
         )
 
     def setUp(self):
-        self.guest_client = Client()
         self.authorized_client = Client()
         self.authorized_client.force_login(PostsURLTests.user2)
 
@@ -53,7 +53,7 @@ class PostsURLTests(TestCase):
         public_url_names = PostsURLTests.public_url_names
         for url in public_url_names:
             with self.subTest(url=url):
-                response = self.guest_client.get(url)
+                response = self.client.get(url)
                 self.assertEqual(response.status_code, 200)
 
     def test_new_url_exists_at_desired_location(self):
@@ -65,7 +65,7 @@ class PostsURLTests(TestCase):
         """Страница /new/ перенаправит анонимного пользователя
         на страницу логина.
         """
-        response = self.guest_client.get('/new/', follow=True)
+        response = self.client.get('/new/', follow=True)
         self.assertRedirects(
             response, '/auth/login/?next=/new/')
 
@@ -95,7 +95,7 @@ class PostsURLTests(TestCase):
         пользователя на страницу /post_id/.
         """
         reverse_name1 = PostsURLTests.reverse_post_edit_name
-        response = self.guest_client.get(reverse_name1, follow=True)
+        response = self.client.get(reverse_name1, follow=True)
         reverse_name2 = '/auth/login/?next=' + reverse_name1
         self.assertRedirects(response, reverse_name2)
 
@@ -132,6 +132,6 @@ class PostsURLTests(TestCase):
                 'post_id': PostsURLTests.post.id
             }
         )
-        response = self.guest_client.get(reverse_name1, follow=True)
+        response = self.client.get(reverse_name1, follow=True)
         reverse_name2 = '/auth/login/?next=' + reverse_name1
         self.assertRedirects(response, reverse_name2)

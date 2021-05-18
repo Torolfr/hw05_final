@@ -7,6 +7,7 @@ User = get_user_model()
 
 
 class GroupModelTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -23,6 +24,7 @@ class GroupModelTest(TestCase):
 
 
 class PostModelTest(TestCase):
+
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

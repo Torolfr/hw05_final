@@ -19,6 +19,8 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from posts import views
+
 handler404 = "posts.views.page_not_found"
 handler500 = "posts.views.server_error"
 urlpatterns = [
@@ -26,6 +28,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('users.urls')),
     path('auth/', include('django.contrib.auth.urls')),
+    path('404/', views.page_not_found, name='404'),
+    path('500/', views.server_error, name='500'),
     path('', include('posts.urls')),
 ]
 if settings.DEBUG:
