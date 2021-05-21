@@ -21,8 +21,8 @@ from django.urls import include, path
 
 from posts import views
 
-handler404 = "posts.views.page_not_found"
-handler500 = "posts.views.server_error"
+handler404 = 'posts.views.page_not_found'
+handler500 = 'posts.views.server_error'
 urlpatterns = [
     path('about/', include('about.urls', namespace='about')),
     path('admin/', admin.site.urls),

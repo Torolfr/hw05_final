@@ -10,8 +10,8 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="h6 text-muted">
-        Подписчиков: {{ author.follower.count }} <br/>
-        Подписан: {{ author.following.count }}
+        Подписчиков: {{ author.following.count }} <br/>
+        Подписан: {{ author.follower.count }}
       </div>
     </li>
     <li class="list-group-item">
@@ -19,7 +19,7 @@
         Записей: {{ author.posts.count }}
       </div>
     </li>
-    {% if request.user.is_authenticated %}
+    {% if page and request.user.is_authenticated and request.user != author %}
       <li class="list-group-item">
         {% if following %}
           <a class="btn btn-lg btn-light" 

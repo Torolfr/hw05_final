@@ -10,25 +10,27 @@ from yatube.settings import POSTS_PER_PAGE
 User = get_user_model()
 
 
-def posts_paginator(request, posts, per_page):
+def posts_paginator(request, posts):
     """Вспомогательная функция паджинатор формирует page
-    для передачи в context в используемых view"""
-    paginator = Paginator(posts, per_page)
+    для передачи в context в используемых view."""
+    paginator = Paginator(posts, POSTS_PER_PAGE)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
     return page
 
 
 def index(request):
-    posts = Post.objects.select_related('author', 'group').all()
-    page = posts_paginator(request, posts, POSTS_PER_PAGE)
+    posts = Post.objects.select_related('author', 'group').prefetch_related(
+        'comments'
+    )
+    page = posts_paginator(request, posts)
     return render(request, 'posts/index.html', {'page': page})
 
 
 def group_posts(request, slug):
     group = get_object_or_404(Group, slug=slug)
-    posts = group.posts.all()
-    page = posts_paginator(request, posts, POSTS_PER_PAGE)
+    posts = group.posts.select_related('author').prefetch_related('comments')
+    page = posts_paginator(request, posts)
     return render(
         request,
         'posts/group.html',
@@ -53,7 +55,7 @@ def new_post(request):
 
 def is_following(user, author):
     """Вспомогательная функция определяет подписан ли
-    пользователь на автора записи"""
+    пользователь на автора записи."""
     if not user.is_authenticated:
         return False
     following = Follow.objects.filter(user=user, author=author).exists()
@@ -62,8 +64,8 @@ def is_following(user, author):
 
 def profile(request, username):
     author = get_object_or_404(User, username=username)
-    posts = author.posts.all()
-    page = posts_paginator(request, posts, POSTS_PER_PAGE)
+    posts = author.posts.select_related('group').prefetch_related('comments')
+    page = posts_paginator(request, posts)
     following = is_following(request.user, author)
     return render(
         request,
@@ -74,11 +76,14 @@ def profile(request, username):
 
 
 def post_view(request, username, post_id):
-    post = get_object_or_404(Post, author__username=username, id=post_id)
+    post = get_object_or_404(
+        Post.objects.select_related('author', 'group').prefetch_related(
+            'comments'),
+        author__username=username, id=post_id
+    )
     form = CommentForm()
     following = is_following(request.user, post.author)
-    # TestPostView.test_post_view_get требует комментарии в контексте
-    comments = comments = post.comments.all()
+    comments = post.comments.all()
     return render(
         request,
         'posts/post.html',
@@ -133,17 +138,19 @@ def add_comment(request, username, post_id):
 
 @login_required
 def follow_index(request):
-    posts = Post.objects.filter(author__following__user=request.user)
-    page = posts_paginator(request, posts, POSTS_PER_PAGE)
+    posts = Post.objects.filter(
+        author__following__user=request.user
+    ).select_related('author', 'group').prefetch_related('comments')
+    page = posts_paginator(request, posts)
     return render(request, 'posts/follow.html', {'page': page})
 
 
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    if request.user == author or is_following(request.user, author):
+    if request.user == author:
         return redirect('profile', username)
-    Follow.objects.create(user=request.user, author=author)
+    Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('profile', username)
 
 

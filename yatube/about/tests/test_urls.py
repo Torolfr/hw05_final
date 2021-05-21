@@ -17,9 +17,9 @@ class AboutURLTests(TestCase):
     def test_about_url_uses_correct_name_path(self):
         """Проверка name path() для адреса /author/ и /tech/."""
         url_names = {
-            '/about/author/': reverse('about:author'),
-            '/about/tech/': reverse('about:tech')
+            '/about/author/': 'about:author',
+            '/about/tech/': 'about:tech'
         }
         for url, name in url_names.items():
             with self.subTest(url=url):
-                self.assertEqual(url, name)
+                self.assertEqual(url, reverse(name))

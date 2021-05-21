@@ -1,15 +1,23 @@
 {% extends "base.html" %}
-{% block title %}Новая Запись{% endblock %}
+{% block title %}
+  {% if not is_edit %}
+    Новая запись
+  {% else %}
+    Редактировать запись
+  {% endif %}
+{% endblock %}
 {% block content %}
   {% load user_filters %}
   <div class="row justify-content-center">
     <div class="col-md-8 p-5">
       <div class="card">
-        {% if not is_edit %}
-          <div class="card-header">Новая запись</div>
-        {% else %}
-          <div class="card-header">Редактировать запись</div>
-        {% endif %}
+        <div class="card-header">
+          {% if not is_edit %}
+            Новая запись
+          {% else %}
+            Редактировать запись
+          {% endif %}
+        </div>
         <div class="card-body">
           <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
@@ -26,19 +34,15 @@
                 </div>                
               </div>
             {% endfor %}
-            {% if not is_edit %}
-              <div class="col-md-6 offset-md-4">              
-                <button type="submit" class="btn btn-primary">
+            <div class="col-md-6 offset-md-4">              
+              <button type="submit" class="btn btn-primary">
+                {% if not is_edit %}
                   Добавить
-                </button>
-              </div>
-            {% else %}
-              <div class="col-md-6 offset-md-4">              
-                <button type="submit" class="btn btn-primary">
+                {% else %}
                   Сохранить
-                </button>
-              </div>
-            {% endif %}
+                {% endif %}
+              </button>
+            </div> 
           </form>
         </div> <!-- card body -->
       </div> <!-- card -->
