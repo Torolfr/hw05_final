@@ -59,25 +59,22 @@ class PostsURLTests(TestCase):
         username = PostsURLTests.user.username
         post_id = PostsURLTests.post.id
         guest = self.client
+        auth_login = reverse('login') + '?next='
         redirect_url_names = (
             ('/new/', guest,
-             reverse('login') + '?next=' + reverse('new_post')),
+             auth_login + reverse('new_post')),
             (f'/{username}/{post_id}/edit/', guest,
-             reverse('login') + '?next=' + reverse('post_edit',
-                                                   args=(username, post_id))),
+             auth_login + reverse('post_edit', args=(username, post_id))),
             (f'/{username}/{post_id}/edit/', reader,
              reverse('post', args=(username, post_id))),
             (f'/{username}/follow/', guest,
-             reverse('login') + '?next=' + reverse('profile_follow',
-                                                   args=(username,))),
+             auth_login + reverse('profile_follow', args=(username,))),
             (f'/{username}/follow/', reader,
              reverse('profile', args=(username,))),
             (f'/{username}/unfollow/', guest,
-             reverse('login') + '?next=' + reverse('profile_unfollow',
-                                                   args=(username,))),
+             auth_login + reverse('profile_unfollow', args=(username,))),
             (f'/{username}/{post_id}/comment/', guest,
-             reverse('login') + '?next=' + reverse('add_comment',
-                                                   args=(username, post_id))),
+             auth_login + reverse('add_comment', args=(username, post_id))),
         )
         for url, client, redirect in redirect_url_names:
             with self.subTest(url=url):
@@ -102,9 +99,9 @@ class PostsURLTests(TestCase):
             (f'/{username}/unfollow/', 'profile_unfollow', (username,)),
             (f'/{username}/', 'profile', (username,))
         )
-        for url, name, arg in url_names:
+        for url, name, args in url_names:
             with self.subTest(url=url):
-                self.assertEqual(url, reverse(name, args=arg))
+                self.assertEqual(url, reverse(name, args=args))
 
     def test_incorrect_url_return_404_error(self):
         """Страница /abraabra/abraabra/ возвращает 404 код ответа."""

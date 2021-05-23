@@ -82,13 +82,12 @@ def post_view(request, username, post_id):
         author__username=username, id=post_id
     )
     form = CommentForm()
-    following = is_following(request.user, post.author)
     comments = post.comments.all()
     return render(
         request,
         'posts/post.html',
         {'author': post.author, 'post': post, 'comments': comments,
-         'form': form, 'following': following},
+         'form': form},
     )
 
 
@@ -148,9 +147,8 @@ def follow_index(request):
 @login_required
 def profile_follow(request, username):
     author = get_object_or_404(User, username=username)
-    if request.user == author:
-        return redirect('profile', username)
-    Follow.objects.get_or_create(user=request.user, author=author)
+    if request.user != author:
+        Follow.objects.get_or_create(user=request.user, author=author)
     return redirect('profile', username)
 
 

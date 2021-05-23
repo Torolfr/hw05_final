@@ -4,7 +4,7 @@ import tempfile
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import Client, TestCase
+from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
 from posts.models import Comment, Group, Post
@@ -12,22 +12,22 @@ from posts.models import Comment, Group, Post
 User = get_user_model()
 
 
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(dir=settings.BASE_DIR))
 class PostFormTests(TestCase):
 
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
         cls.user = User.objects.create_user(username='Testuser')
         cls.group = Group.objects.create(
             title='Тестовая группа',
             slug='test-slug',
             description='Это тестовая группа'
         )
-        cls.post = Post.objects.create(
-            text='Первая запись',
-            author=cls.user,
-            group=cls.group,
+        cls.group2 = Group.objects.create(
+            title='Тестовая группа 2',
+            slug='test-slug2',
+            description='Это тестовая группа 2'
         )
 
     @classmethod
@@ -50,8 +50,9 @@ class PostFormTests(TestCase):
             b'\x02\x00\x01\x00\x00\x02\x02\x0C'
             b'\x0A\x00\x3B'
         )
+        image_name = 'small.gif'
         uploaded = SimpleUploadedFile(
-            name='small.gif',
+            name=image_name,
             content=small_gif,
             content_type='image/gif'
         )
@@ -71,7 +72,7 @@ class PostFormTests(TestCase):
         self.assertEqual(new_post.text, form_data['text'])
         self.assertEqual(new_post.author, PostFormTests.user)
         self.assertEqual(new_post.group, PostFormTests.group)
-        self.assertEqual(new_post.image, 'posts/small.gif')
+        self.assertEqual(new_post.image, 'posts/' + image_name)
 
     def test_new_post_guest_client(self):
         """Анонимный пользователь не  может создать новую запись в Post."""
@@ -93,50 +94,56 @@ class PostFormTests(TestCase):
 
     def test_post_edit(self):
         """Валидная форма редактирует запись в Post."""
+        post = Post.objects.create(
+            text='Первая запись',
+            author=PostFormTests.user,
+            group=PostFormTests.group,
+        )
         form_data = {
             'text': 'Отредактированная первая запись',
-            'group': PostFormTests.group.id,
+            'group': PostFormTests.group2.id,
         }
         username = PostFormTests.user
-        post_id = PostFormTests.post.id
-        reverse_names = (
-            reverse('post_edit', args=(username, post_id)),
-            reverse('post', args=(username, post_id))
-        )
+        post_id = post.id
+        post_edit_name = reverse('post_edit', args=(username, post_id))
+        post_name = reverse('post', args=(username, post_id))
         response = self.authorized_client.post(
-            reverse_names[0],
+            post_edit_name,
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, reverse_names[1])
+        self.assertRedirects(response, post_name)
         redacted_post = Post.objects.first()
         self.assertEqual(redacted_post.text, form_data['text'])
         self.assertEqual(redacted_post.author, PostFormTests.user)
-        self.assertEqual(redacted_post.group, PostFormTests.group)
+        self.assertEqual(redacted_post.group, PostFormTests.group2)
 
     def test_post_edit_reader_client(self):
         """Авторизованный пользователь не может редактировать чужую запись"""
+        post_0 = Post.objects.create(
+            text='Первая запись',
+            author=PostFormTests.user,
+            group=PostFormTests.group,
+        )
         user = User.objects.create_user(username='Testuser2')
         reader_client = Client()
         reader_client.force_login(user)
         form_data = {
             'text': 'Отредактированная читателем запись',
-            'group': PostFormTests.group.id,
+            'group': PostFormTests.group2.id,
         }
         username = PostFormTests.user
-        post_id = PostFormTests.post.id
-        reverse_names = (
-            reverse('post_edit', args=(username, post_id)),
-            reverse('post', args=(username, post_id))
-        )
+        post_id = post_0.id
+        post_edit_name = reverse('post_edit', args=(username, post_id))
+        post_name = reverse('post', args=(username, post_id))
         response = reader_client.post(
-            reverse_names[0],
+            post_edit_name,
             data=form_data,
             follow=True
         )
-        self.assertRedirects(response, reverse_names[1])
+        self.assertRedirects(response, post_name)
         post = Post.objects.first()
-        self.assertEqual(post.text, PostFormTests.post.text)
+        self.assertEqual(post.text, post_0.text)
         self.assertEqual(post.author, PostFormTests.user)
         self.assertEqual(post.group, PostFormTests.group)
 
@@ -169,17 +176,15 @@ class CommentFormTests(TestCase):
         form_data = {'text': 'Новый комментарий'}
         username = CommentFormTests.user
         post_id = CommentFormTests.post.id
-        reverse_names = (
-            reverse('add_comment', args=(username, post_id)),
-            reverse('post', args=(username, post_id))
-        )
+        add_comment_name = reverse('add_comment', args=(username, post_id))
+        post_name = reverse('post', args=(username, post_id))
         response = self.authorized_client.post(
-            reverse_names[0],
+            add_comment_name,
             data=form_data,
             follow=True
         )
         self.assertEqual(Comment.objects.count(), comment_count + 1)
-        self.assertRedirects(response, reverse_names[1])
+        self.assertRedirects(response, post_name)
         new_comment = Comment.objects.first()
         self.assertEqual(new_comment.text, form_data['text'])
         self.assertEqual(new_comment.post, CommentFormTests.post)
@@ -192,17 +197,14 @@ class CommentFormTests(TestCase):
         form_data = {'text': 'Новый комментарий'}
         username = CommentFormTests.user
         post_id = CommentFormTests.post.id
-        reverse_names = (
-            reverse('add_comment', args=(username, post_id)),
-            reverse('post', args=(username, post_id))
-        )
+        add_comment_name = reverse('add_comment', args=(username, post_id))
         response = self.client.post(
-            reverse_names[0],
+            add_comment_name,
             data=form_data,
             follow=True
         )
         self.assertRedirects(
             response,
-            reverse('login') + '?next=' + reverse_names[0]
+            reverse('login') + '?next=' + add_comment_name
         )
         self.assertEqual(Comment.objects.count(), comment_count)

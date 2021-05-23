@@ -12,11 +12,7 @@
     <div class="col-md-8 p-5">
       <div class="card">
         <div class="card-header">
-          {% if not is_edit %}
-            Новая запись
-          {% else %}
-            Редактировать запись
-          {% endif %}
+          {{ is_edit|yesno:"Редактировать запись,Новая запись" }}
         </div>
         <div class="card-body">
           <form method="post" enctype="multipart/form-data">
@@ -36,11 +32,7 @@
             {% endfor %}
             <div class="col-md-6 offset-md-4">              
               <button type="submit" class="btn btn-primary">
-                {% if not is_edit %}
-                  Добавить
-                {% else %}
-                  Сохранить
-                {% endif %}
+                {{ is_edit|yesno:"Сохранить,Добавить" }}
               </button>
             </div> 
           </form>
